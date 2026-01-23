@@ -1,0 +1,286 @@
+{
+  "name": "2. BOT Assistant Masssenger",
+  "nodes": [
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "e3b2b90f-8f18-43f0-a6c4-6b80cb77ea50",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        64
+      ],
+      "id": "bb2f327b-dcdf-4943-b807-96180c8dad12",
+      "name": "Webhook",
+      "webhookId": "e3b2b90f-8f18-43f0-a6c4-6b80cb77ea50"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8c2b807d-d0b4-4aee-83d4-d257b4de1389",
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "5a283a31-e770-4057-a0d8-56c674944d4d",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "P@ssw0rd.123",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -32
+      ],
+      "id": "3a03593e-f755-4267-9cf4-e3fac1b43986",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        288,
+        -32
+      ],
+      "id": "d8ef1904-d8df-4658-98de-f0e5ccc1a6e3",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v24.0/{{ $('Webhook').item.json.body.entry[0].messaging[0].recipient.id }}/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAVSshbh5rQBQW8AxlLdZCw3RRBee3SuaDTswBmXgxWBGPz53JZALDhIrYo6e7KmlpHi3mEkpMFNuXrlxXZB4vqZCqScBw038jefZADCITyrmhep4ZApxnlhzYcTTZAE7dJqFiiS96qFcqV9lft3LQy9bNpNFIAzhkTKnY7nmK5qdrcAkLJEfuZCaYrksgWWac7FCOnNVkKvSwZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Webhook').item.json.body.entry[0].messaging[0].sender.id }}\"\n  },\n  \"messaging_type\": \"RESPONSE\",\n  \"message\": {\n    \"text\": {{ JSON.stringify($node[\"AI Agent\"].json[\"output\"]) }}\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        672,
+        160
+      ],
+      "id": "19fdff60-a96a-43a3-8d7f-da343fda047f",
+      "name": "Messenger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.entry[0].messaging[0].message.text }}",
+        "options": {
+          "systemMessage": "Anda adalah asisten virtual bernama 'Wayang Assistant' dari Toko Roti Semar Cakes. Kepribadian Anda ramah, hangat, sopan, dan sangat membantu, seperti aroma roti segar di pagi hari.\n\nTugas Utama Anda:\n\nRekomendasi: Berikan rekomendasi menu berdasarkan preferensi pelanggan (misal: roti manis, roti gandum sehat, atau kue ulang tahun).\n\nInformasi Produk: Jelaskan bahan utama, tekstur, dan status kehalalan produk kami.\n\nProsedur Pemesanan: Berikan panduan cara memesan (Format: Nama, Alamat, Pesanan) dan informasikan biaya pengiriman.\n\nPenanganan Keluhan: Tetap tenang dan minta maaf jika ada masalah, lalu arahkan ke admin manusia jika diperlukan.\n\nAturan Komunikasi:\n\nGunakan bahasa Indonesia yang santai tapi tetap profesional (gunakan kata 'Kakak' atau 'Sobat Roti').\n\nSelalu tutup percakapan dengan kalimat manis, contoh: 'Semoga hari Kakak semanis roti kami!'.\n\nJika pelanggan bertanya tentang stok, jawab bahwa Anda akan mengeceknya ke bagian dapur (hubungkan dengan data riil jika ada).\n\nData Toko:\n\nJam Buka: 07.00 - 21.00 WIB.\n\nMenu Andalan: Roti Sisir Mentega, Croissant Cokelat, dan Roti Gandum Madu.\n\nLokasi: Jl. Mawar No. 123.\"\n\nGunakan format balasan yang support dengan Messenger tanpa ** atau *  atau format penulisan AI lainnya.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        320,
+        160
+      ],
+      "id": "337dd4be-7996-46cf-917b-815cf7bbd8fa",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        320,
+        368
+      ],
+      "id": "96edde9c-9e97-4ce5-a2f9-c89ae4edba33",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "VH9WPS3912RbnWVV",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.entry[0].messaging[0].sender.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        336
+      ],
+      "id": "27c65821-7119-4af3-a8af-d9ccd88a56b8",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        112,
+        160
+      ],
+      "id": "46534141-22df-4bea-82c0-3a50bae2fe30",
+      "name": "Wait",
+      "webhookId": "0ecda502-50d5-4c02-ab66-c15af33c005f"
+    },
+    {
+      "parameters": {
+        "content": "## Koneksi Messenger",
+        "height": 176,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -80
+      ],
+      "id": "634106aa-eb9f-4d49-a6a0-c5fd0a77d7a4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Bot Assistant Messenger",
+        "height": 384,
+        "width": 800,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        112
+      ],
+      "id": "3bb0dedb-55a1-4cba-a957-145cfe77dff1",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Messenger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "53b710d1-a493-4d76-940a-f2f32ed7b8b9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc8a6ae6898cc39a21e50c20591c5b47b60208d2ef9545ac944c96b94750dbc7"
+  },
+  "id": "5AeR4g8pU3LWE27k",
+  "tags": []
+}
